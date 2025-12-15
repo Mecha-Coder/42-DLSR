@@ -1,62 +1,123 @@
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
-import matplotlib.pyplot as plt
+from numpy.typing import NDArray
 
-class LogisticRegression:
 
-    # ============================================================================
-    # Initialization
-    # ============================================================================
+
+class LogisticR:
 
     def __init__(self):
+
+        self.m: int = 0                # size of data   
+        self.n: int = 0                # features
+
+        self.k: int = 0                # number of categories
+        self.k_list: list[str] = None  # category list
+        
+        self.w: np.ndarray = None      # weights
+        self.b: np.ndarray = None      # bias
+  
+
+    # ==================================================================
+
+    def model(self, w, x, b):
+
+        z = np.dot(w.T, x) + b
+        return 1 / (1 + np.exp(-z))
+    
+    # ==================================================================
+
+    def get_stats(self, x):
+        mean = np.sum(x, axis=1, keepdims=True) / self.m
+
+        variance = np.sum((x - mean) ** 2, axis=1, keepdims=True) / self.m
+        std = np.sqrt(variance)
+
+        return mean, std
+    
+    # ==================================================================
+    
+    def compute_loss(self, p, y):
+        m = self.m
+        return -(1/m) * np.sum(y * np.log(p) + (1-y) * np.log(1-p))
+
+    # ==================================================================
+
+    def train_GD(self, x, y, alpha=0.1, iter=9000000, limit=0.000001):
+                
+        w = np.zeros((self.n, 1))
+        b = 0
+        m = self.m
+
+        for i in range(iter):
+
+            p = self.model(w, x, b)
+            loss = self.compute_loss(p, y)
             
-            # Model parameters
-            self.n = 0              # features
-            self.W = np.array([])   # weights
-            self.b = np.array([])   # bias
+            if (i): print(f"\033[{1}A", end='')
+            print(f"Iteration: {i} | Loss: {loss}")
 
-            # Input data
-            self.m = 0              # size of data
-            self.k = []             # categories
-            self.k_size             # category size
+            dw = (1/m) * np.dot(p - y, x.T)
+            step_w = alpha * dw.T
+            step_b = alpha * (1/m) * np.sum(p - y)
 
-    # ============================================================================
-    # Load Trained Co-efficients
-    # ============================================================================
+            w -= step_w
+            b -= step_b
 
-    def load_coefficients(self, _W: NDArray, _b: NDArray) -> None:
-        """Load model with previously trained & saved coefficients (Weights, Bias)"""
+            if (np.all(np.abs(step_w) <= limit) and np.abs(step_b) <= limit):
+                print("Converged 👍")
+                break
+            if (i == iter - 1):
+                print("Did not converge 🤔")
         
-        W_shape = _W.shape
-        b_shape = _b.shape
-        print(f"W = {W_shape} | b = {b_shape}")
+        return w, b
 
-        if (_W.size == 0 or _b.size == 0 or len(_W) != len(_b)):
-            raise ValueError("Load failed. Got issue with the shape")
+    # ==================================================================
+
+    def init_train(self, x, y):
+
+        self.k_list = sorted(list(set(y)))
+        self.k = len(self.k_list)
+        self.m = x.shape[1]
+        self.n = x.shape[0]
+
+        return self.m, self.n, self.k
+
+    # ==================================================================
+
+    def fit_model(self, x, y):
         
-        self.W = _W
-        self.b = _b
-        self.k_size = W_shape[0]
-        self.n = W_shape[1]
-        
-        print("Model loaded with co-efficients trained with: ")
-        print(f"[{self.k_size}] categories and [{self.n}] features")
-    
-    # ============================================================================
-    # Save Co-efficients
-    # ============================================================================
+        m, n, k = self.init_train(x, y)
+        mean, std = self.get_stats(x)
+        x_train = (x - mean) / std
 
-    
+        w_all = np.zeros((n, k))
+        b_all = np.zeros((k, 1))
 
-    # ============================================================================
-    # Train Model with Gradient Descent
-    # ============================================================================
+        for i, cat in enumerate(self.k_list):
+            print(f"Train for category: {cat}")
+            y_train = (y == cat).astype(np.uint8)
+            y_train =  y_train.reshape((1, m))
 
-    def train_gradient_descent():
-        pass
+            w, b = self.train_GD(x_train, y_train)
+
+            w_all[:, i:i + 1] = w / std
+            b_all[i, 0] = b - np.sum(w * mean / std)
+
+        self.w = w_all
+        self.b = b_all
 
 
-s1 = np.zeros((4,5))
-s2 = np.zeros((4,1))
-print(len(s1), len(s2))
+data = pd.read_csv("dataset/dataset_train.csv")
+
+courses = ['Astronomy', 'Herbology', 'Divination', 'Muggle Studies', 
+            'Ancient Runes', 'History of Magic', 'Transfiguration']
+
+x_train = data[courses]
+x_train = np.array(x_train.fillna(x_train.median()))
+x_train = x_train.T
+
+y_train = np.array(data["Hogwarts House"])
+
+model = LogisticR()
+model.fit_model(x_train, y_train)
