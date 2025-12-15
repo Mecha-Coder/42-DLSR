@@ -1,0 +1,1 @@
+from .model_linear_class import LogisticRegression
