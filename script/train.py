@@ -24,8 +24,3 @@ answer = model.predict(x_train)
 
 validate = y_train.flatten()
 
-count = 0
-for i, h in enumerate(validate):
-    if (answer[i] == h): count += 1
-
-print(f"Accuracy ={count * 100/ len(validate)}%")

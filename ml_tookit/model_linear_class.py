@@ -3,11 +3,25 @@ import pandas as pd
 
 class LogisticRegression:
     
-    def __init__(me):
+    def __init__(me, file: str = None):
         
         me.c: np.ndarray = None   # class
-        me.w: np.ndarray  = None  # weights
-        me.b: np.ndarray  = None  # bias
+        me.w: np.ndarray = None  # weights
+        me.b: np.ndarray = None  # bias
+
+        if (file):
+            data = np.load(file)
+            data = np.load(file)
+            me.c = data.get('c', me.c)
+            me.w = data.get('w', me.w)
+            me.b = data.get('b', me.b)
+            print("Model loaded")
+            print("=============")
+            print("Class      : ", me.c)
+            print("Class no.  : ", len(me.c)) 
+            print("Feature no.: ", me.w[0])
+            print("Sample no. : ", me.k[0])
+            print("_____________________________________________________\n")
 
     #________________________________________________________
 
@@ -33,6 +47,9 @@ class LogisticRegression:
         print("Training done 🎉")
         me.w = w_all
         me.b = b_all
+    def save_model(me, filepath):
+        np.savez(filepath, c=me.c, w=me.w, b=me.b)
+        print("Model saved ✌🤩")
 
     # Predict class
     def predict(me, x):
