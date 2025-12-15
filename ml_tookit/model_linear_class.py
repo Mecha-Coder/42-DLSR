@@ -27,9 +27,6 @@ class LogisticRegression:
 
             w, b = me.std_grad_descent(x_train, y_train, m, n)
 
-            print(w)
-            print(b)
-
             w_all[:, i:i + 1] = w / std
             b_all[i, 0] = b - np.sum(w * mean / std)
         
@@ -37,17 +34,29 @@ class LogisticRegression:
         me.w = w_all
         me.b = b_all
 
+    # Predict class
+    def predict(me, x):
+        if (me.w is None or me.b is None or me.c is None):
+            return print("Please load or fit the model first")
+
+        if (x.shape[0] != me.w.shape[0] and x.shape[1] < 1):
+            raise Exception("Incorrect shape for X")
+        
+        p = me.model(x)
+        idx_arr = np.argmax(p, axis=0)
+        return me.c[idx_arr].flatten()
+
     # Training methods
     def stochastic_grad_descent(me): pass  
     def std_grad_descent(me, x, y, m, n):
         alpha=0.1
-        iter=500000
+        iter=1000000
 
         w = np.zeros((n, 1))
         b = 0.0
 
         for i in range(iter):
-            p = me.model(w, x, b)
+            p = me.model(x, w, b)
 
             if (i): print(f"\033[{1}A", end='')
             print(f"Iteration: {i} | Loss: {me.loss_ft(p, y, m)}")
@@ -103,7 +112,7 @@ class LogisticRegression:
         return mean, std
     def stop_loop(me, step_w, step_b, i, iter):
 
-        if (np.all(np.abs(step_w) <= 1e-15) and np.abs(step_b) <= 1e-15):
+        if (np.all(np.abs(step_w) <= 1e-12) and np.abs(step_b) <= 1e-12):
             print(f"Converged 👍")
 
         elif (i == iter - 1):
@@ -113,7 +122,11 @@ class LogisticRegression:
         return True
     def loss_ft(me, p, y, m):
         return -(1/m) * np.sum(y*np.log(p) + (1-y)*np.log(1-p))
-    def model(me, w, x, b):
+    def model(me, x, w=None, b=None):
+
+        if (w is None and b is None):
+            w = me.w
+            b = me.b
         z = np.dot(w.T, x) + b
         return 1 / (1 + np.exp(-z))
     
