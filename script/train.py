@@ -13,6 +13,8 @@ data = pd.read_csv("data/dataset_train.csv")
 courses = ['Astronomy', 'Herbology', 'Divination', 'Muggle Studies', 
             'Ancient Runes', 'History of Magic', 'Transfiguration']
 
+
+
 feature = data[courses]
 feature = feature.fillna(feature.median())
 
