@@ -55,10 +55,13 @@ class Describe:
             values = []
 
             for i in range(t.row_no):
-                val = df[c][i]
+                val = df[c].iloc[i]
                 
-                if pd.isna(val): missing_no += 1
-                else           : values.append(val)
+                if pd.isna(val) or (
+                    isinstance(val, str) and (val.strip() == '' or val.lower() == 'nan')
+                    ): missing_no += 1
+                else: 
+                    values.append(val)
             
             values = np.array(values)
             
@@ -80,7 +83,7 @@ class Describe:
             t.unique.append(ulen)
         
             # --------------------------------------
-            if (not pd.api.types.is_number(u1)):
+            if (not pd.api.types.is_numeric_dtype(u1)):
                 t.mean.append(np.nan)
                 t.std.append(np.nan)
                 t.min.append(np.nan)

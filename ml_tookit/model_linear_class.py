@@ -10,17 +10,15 @@ class LogisticRegression:
         me.b: np.ndarray = None  # bias
 
         if (file):
-            data = np.load(file)
-            data = np.load(file)
-            me.c = data.get('c', me.c)
-            me.w = data.get('w', me.w)
-            me.b = data.get('b', me.b)
+            data = np.load(file, allow_pickle=True)
+            me.c = data['c']
+            me.w = data['w']
+            me.b = data['b']
             print("Model loaded")
             print("=============")
             print("Class      : ", me.c)
-            print("Class no.  : ", len(me.c)) 
-            print("Feature no.: ", me.w[0])
-            print("Sample no. : ", me.k[0])
+            print("Class no.  : ", me.b.shape[0]) 
+            print("Feature no.: ", me.w.shape[0])
             print("_____________________________________________________\n")
 
     #________________________________________________________
