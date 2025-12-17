@@ -1,15 +1,10 @@
 ### **Feature Selection**
 
-[Pair Plot Matrix](https://github.com/Mecha-Coder/42-DLSR/blob/jason/figure/feature_selection.png)
 
-- Astronomy
-- Herbology
-- Divination
-- Muggle Studies
-- Ancient Runes
-- History of Magic
-- Transfiguration
-  
+|Features | Pair Plat Matrix |
+|---------|------------------|
+| Astronomy<br>Herbology<br>Divination<br>Muggle Studies<br>Ancient Runes<br>History of Magic<br>Transfiguration | ![](https://github.com/Mecha-Coder/42-DLSR/blob/jason/figure/feature_selection.png)|
+
 ---
 
 ### **Gradient Descent Training Results**
