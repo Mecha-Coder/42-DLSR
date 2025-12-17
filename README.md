@@ -29,6 +29,7 @@ python3 ./script/pair_plot.py
 2) Different training
 ```bash
 # Batch
+python3 ./script/logreg_train.py data/dataset_train.csv
 
 # Mini-Batch
 python3 ./script/train_bonus_1.py data/dataset_train.csv 
