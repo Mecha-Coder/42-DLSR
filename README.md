@@ -1,6 +1,6 @@
 ### **Feature Selection**
 
-![](https://github.com/Mecha-Coder/42-DLSR/blob/jason/figure/feature_selection.png)
+[Pair Plot Matrix](https://github.com/Mecha-Coder/42-DLSR/blob/jason/figure/feature_selection.png)
 
 - Astronomy
 - Herbology
