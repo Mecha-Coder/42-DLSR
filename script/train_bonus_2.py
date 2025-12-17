@@ -27,12 +27,12 @@ for i, course in enumerate(courses):
 x_train = np.array(feature).T
 y_train = np.array([data["Hogwarts House"]])
 
-fig, ax = model.fit_model(x_train, y_train, which="batch")
+fig, ax = model.fit_model(x_train, y_train, which="stochastic")
 model.save_model('logreg.npz')
 
 ax.legend()
-ax.set(xlabel='Epochs', ylabel='Loss', title=f"Trained with Batch GD | Batch = 1600 | Learn_Rate = 0.001")
-fig.savefig('figure/train_batch_GD.png', dpi=300, bbox_inches='tight')
+ax.set(xlabel='Epochs', ylabel='Loss', title=f"Trained with Stochastic GD | Batch = 1 | Learn_Rate = 0.0001", ylim=(0,1))
+fig.savefig('figure/train_stochastic_GD.png', dpi=300, bbox_inches='tight')
 
 # -----------------------------------------------
 # Test

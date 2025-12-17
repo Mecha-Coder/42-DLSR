@@ -4,8 +4,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import numpy as np
 import pandas as pd
-from ml_tookit.model_linear_class import LogisticRegression
-from ml_tookit.utils import Describe
+from ml_toolkit.model_linear_class import LogisticRegression
+from ml_toolkit.utils import Describe
 
 try: 
     data = pd.read_csv(sys.argv[1])

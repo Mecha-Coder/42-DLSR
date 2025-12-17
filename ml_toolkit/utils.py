@@ -9,7 +9,7 @@ def accuracy(predict, actual):
     if len(predict) != len(actual):
         raise Exception("Incorrect shape")
     acc = (np.sum(predict == actual) / len(actual)) * 100
-    print(f"Accuracy = {acc:.3}%")
+    print(f"Accuracy = {acc:.3f}%")
 
 
 # ____________________________________________________________________

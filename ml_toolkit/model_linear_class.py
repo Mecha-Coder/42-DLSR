@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import time
+from typing import Literal
 
 class LogisticRegression:
     
@@ -8,6 +11,12 @@ class LogisticRegression:
         me.c: np.ndarray = None   # class
         me.w: np.ndarray = None  # weights
         me.b: np.ndarray = None  # bias
+
+        me.gradient_descent = {
+            "batch": me.batch_grad_descent,
+            "mini-batch": me.mini_batch_grad_descent,
+            "stochastic": me.stochastic_grad_descent
+        }
 
         if (file):
             data = np.load(file, allow_pickle=True)
@@ -24,7 +33,7 @@ class LogisticRegression:
     #________________________________________________________
 
     # Load |or| Fit model
-    def fit_model(me, x, y):
+    def fit_model(me, x, y , which: Literal["stochastic", "mini-batch", "batch"]):
         m, n, k, c = me.init_train(x, y)
 
         w_all = np.zeros((n, k))
@@ -33,18 +42,25 @@ class LogisticRegression:
         mean, std = me.get_stats(x, m)
         x_train = (x - mean) / std
 
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        print(f"Gradient Descent Type: {which}\n")
+        t_start = time.time()
         for i, cat in enumerate(c):
-            print(f"Train for {cat}")
+            print(f"> Train for {cat}")
             y_train = np.array((y == cat).astype(np.uint8))
 
-            w, b = me.std_grad_descent(x_train, y_train, m, n)
-
+            w, b ,loss = me.gradient_descent[which](x_train, y_train, m, n)
+            ax.plot(range(len(loss)), loss, label=cat)
+            
             w_all[:, i:i + 1] = w / std
             b_all[i, 0] = b - np.sum(w * mean / std)
         
-        print("Training done 🎉")
+        t_end = time.time()
+        print(f"Training done 🎉, Time:{(t_end - t_start):.3f} s")
         me.w = w_all
         me.b = b_all
+        return fig, ax
     def save_model(me, filepath):
         np.savez(filepath, c=me.c, w=me.w, b=me.b)
         print("Model saved ✌🤩")
@@ -62,19 +78,82 @@ class LogisticRegression:
         return me.c[idx_arr].flatten()
 
     # Training methods
-    def stochastic_grad_descent(me): pass  
-    def std_grad_descent(me, x, y, m, n):
-        alpha=0.1
-        iter=1000000
+    def stochastic_grad_descent(me, x, y, m, n):
+        alpha=0.0001
+        epoch = 10000
 
+        loss = []
         w = np.zeros((n, 1))
         b = 0.0
 
-        for i in range(iter):
-            p = me.model(x, w, b)
+        for i in range(epoch):
+            ids = np.random.permutation(m)
+            y1 = None
+            p = None
 
+            for r in ids:
+                x1 = x[:, r:r+1]
+                y1 = y[0, r]
+
+                p = me.model(x1, w, b).item()                
+                step_w = alpha * x1 * (p - y1)
+                step_b = alpha * (p - y1)
+
+                w -= step_w
+                b -= step_b
+
+                if (me.stop_loop(step_w, step_b, i, epoch)):
+                    return w, b, loss
+                
+            loss.append(me.loss_ft(p, y1, 1))
             if (i): print(f"\033[{1}A", end='')
-            print(f"Iteration: {i} | Loss: {me.loss_ft(p, y, m)}")
+            print(f"Epoch: {i} | Loss: {loss[i]}")
+    def mini_batch_grad_descent(me, x, y, m, n):
+        alpha=0.0001
+        epoch=10000
+        batch_size = 32
+
+        loss = []
+        w = np.zeros((n, 1))
+        b = 0.0
+
+        for i in range(epoch):
+            ids = np.random.permutation(m)
+            ymini = None
+            p = None
+
+            for start in range(0, m, batch_size):
+                end = min(start + batch_size, m)
+                batch = ids[start:end]
+
+                xmini = x[:, batch]
+                ymini = y[:, batch]
+                l = len(batch)
+
+                p = me.model(xmini, w, b)
+                step_w = alpha * (1/l) * np.dot(xmini, (p - ymini).T)
+                step_b = alpha * (1/l) * np.sum(p - ymini)
+
+                w -= step_w
+                b -= step_b
+
+                if (me.stop_loop(step_w, step_b, i, epoch)): 
+                    return w, b, loss
+            
+            loss.append(me.loss_ft(p, ymini, l))
+            if (i): print(f"\033[{1}A", end='')
+            print(f"Epoch: {i} | Loss: {loss[i]}")
+    def batch_grad_descent(me, x, y, m, n):
+        alpha=0.001
+        epoch=1000000
+
+        loss = []
+        w = np.zeros((n, 1))
+        b = 0.0
+
+        for i in range(epoch):
+            p = me.model(x, w, b)
+            loss.append(me.loss_ft(p, y, m)) 
 
             step_w = alpha * (1/m) * np.dot(x, (p - y).T)
             step_b = alpha * (1/m) * np.sum(p - y)
@@ -82,9 +161,11 @@ class LogisticRegression:
             w -= step_w
             b -= step_b
 
-            if (me.stop_loop(step_w, step_b, i, iter)): break
-        
-        return w, b
+            if (me.stop_loop(step_w, step_b, i, epoch)): 
+                return w, b, loss
+
+            if (i): print(f"\033[{1}A", end='')
+            print(f"Epoch: {i} | Loss: {loss[i]}")
        
     # Training utils
     def init_train(me, x, y):
@@ -126,14 +207,15 @@ class LogisticRegression:
         std = np.sqrt(variance)
         return mean, std
     def stop_loop(me, step_w, step_b, i, iter):
-
-        if (np.all(np.abs(step_w) <= 1e-12) and np.abs(step_b) <= 1e-12):
+        eps = 5e-6
+        if (np.all(np.abs(step_w) <= eps) and np.abs(step_b) <= eps):
             print(f"Converged 👍")
 
         elif (i == iter - 1):
             print("Didn't converge 😞")
 
         else: return False
+        print("_______________________________")
         return True
     def loss_ft(me, p, y, m):
         return -(1/m) * np.sum(y*np.log(p) + (1-y)*np.log(1-p))
